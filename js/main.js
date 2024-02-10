@@ -1,65 +1,72 @@
-let btnSubmit = document.querySelector('#btn-submit');
-let form = document.querySelector('form');
-let repaetPassword = document.querySelector('.repaet-password');
-let successful = document.querySelector('.successful');
-let eyes = document.querySelectorAll('.eye');
-let input = document.querySelectorAll('input');
+const form = document.querySelector('form')
+const okay = document.querySelector('.okay')
+const button = document.querySelector('#btn')
+const password = document.querySelector('#pass')
+const passwordRepeat = document.querySelector('#passRep')
+const name = document.querySelector('#name')
+const passes = document.querySelectorAll('.password')
 
-const resultData = (response) => {
-    console.log(response)
-    if (response.status === 200 || response.status === 201) {
-        form.style.display = 'none';
-        successful.style.display = 'block';
-    } else if (response.status === 400) {
-        alert("Xatolik");
+passes.forEach(input => {
+    const control = input.querySelector('.password-control')
+    const password = input.querySelector('input')
+    
+    control.onclick = (event) => {
+        if (password.getAttribute('type') === 'password') {
+            event.target.classList.add('view')
+            password.setAttribute('type', 'text');
+        } else {
+            event.target.classList.remove('view')
+            password.setAttribute('type', 'password');
+        }
+    }
+})
+
+const postData =  (url, data) => {
+    const response = fetch(url, {
+        method: 'POST',
+        headers: {'Content-type': 'application/json'},
+        body: data
+    })
+    if (response.status === 404) {
+        return alert('Xatolik 404')
+    }
+    if (response.status === 400) {
+        return alert('Bunaqa foydalanuvchi avvaldan mavjud!')
+    }
+    form.style.display = 'none'
+    okay.style.display = 'block'
+    return response.json()
+}
+
+const bindPostData = (form) => {
+    button.onclick = async (event) => {
+        event.preventDefault()
+        const obj = {
+            "username":name.value,
+            "password":password.value,
+            "password_confirm" : passwordRepeat.value
+        };
+        const json = JSON.stringify(obj)
+        // if (name.value === '') {
+        //     return alert('Ismingizni kiriting!')
+        // }
+        // if (password.value === '') {
+        //     return alert('Parol kiriting!')
+        // }
+        // if (password.value.length < 8) {
+        //     return alert("Eng kamida 8 belgi bo'lishishi shart")
+        // }
+        // if (passwordRepeat.value === '') {
+        //     return alert('Parolni qayta kiriting!')
+        // }
+        if (password.value === passwordRepeat.value) {
+            console.log(obj);
+            return postData("http://10.0.102.131:8000/api/users/", json)
+        }
+        else {
+            return alert('Parol most emas!')
+        }
     }
 }
 
-const postData = async (url, formdata) => {
-    var requestOptions = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: formdata,
-    };
-
-    fetch(url, requestOptions)
-        .then(response => response)
-        .then(result => resultData(result))
-        .catch(error => console.log('error', error));
-}
-
-eyes.forEach((eye, index) => {
-    let password = document.querySelectorAll('.password');
-    
-    eye.addEventListener("click", (e) => {
-        if (index ===1) {
-            if (password[index].getAttribute('type') !== "password") {
-                e.target.classList.remove("view-off")
-                password[index].setAttribute('type', 'password');
-            } else {
-                e.target.classList.add("view-off")
-                password[index].setAttribute('type', 'text');
-            }
-        }
-    });
-});
-
-form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    let data = {
-        "username": form.username.value,
-        "password": form.password.value,
-        "password_confirm": form.password_confirm.value,
-    };
-
-    postData("https://ce38-93-170-220-216.ngrok-free.app/api/users/", JSON.stringify(data));
-
-    validate();
-})
-function validate() {
-    // if (form.password.value !== form.password_confirm.value) {
-        // alert("Parollar mos emas!")
-    // }
-}
+bindPostData(form)
